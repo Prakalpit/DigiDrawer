@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% block title %}Files{% endblock %}
+
+{% block extra_head %}
+    <script src="https://unpkg.com/alpinejs" defer></script>
+{% endblock %}
+
+{% block content %}
+
+    <div x-data="{ openModal: false, modalTitle: '', modalContent: '' }">
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-semibold">Files</h1>
+
+            <button
+                    @click="
+                openModal = true;
+                modalTitle = 'Upload File';
+                modalContent = 'create';
+            "
+                    class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition">
+                Upload File
+            </button>
+        </div>
+
+
+        <!-- active/ archived -->
+        <div class="flex items-center space-x-4 mb-6">
+
+            <!-- ACTIVE BUTTON -->
+            <a
+                    href="{% url 'file_list' %}?view=active"
+                    class="px-4 py-2 rounded-xl font-medium transition
+               {% if view_mode == 'active' %}
+               bg-indigo-600 text-white
+               {% else %}
+               bg-gray-200 text-gray-700 hover:bg-gray-300
+               {% endif %}">
+                Active Files
+            </a>
+
+            <!-- ARCHIVED BUTTON -->
+            <a
+                    href="{% url 'file_list' %}?view=archived"
+                    class="px-4 py-2 rounded-xl font-medium transition
+               {% if view_mode == 'archived' %}
+               bg-indigo-600 text-white
+               {% else %}
+               bg-gray-200 text-gray-700 hover:bg-gray-300
+               {% endif %}">
+                Archived
+            </a>
+
+        </div>
+
+
+        <!-- SEARCH + TAG FILTER BAR -->
+        <div class="flex items-center gap-4 mb-6">
+
+            <!-- SEARCH BAR -->
+            <form method="GET" class="flex-1">
+
+                <!-- Keep view filter -->
+                <input type="hidden" name="view" value="{{ view_mode }}">
+
+                <!-- Keep tag filter if applied -->
+                {% if tag_filter %}
+                    <input type="hidden" name="tag" value="{{ tag_filter }}">
+                {% endif %}
+
+                <input
+                        type="text"
+                        name="search"
+                        value="{{ search_query }}"
+                        placeholder="Search files…"
+                        class="w-full border px-4 py-2 rounded-xl"
+                >
+            </form>
+
+
+            <!-- TAG FILTER DROPDOWN -->
+            <div x-data="{ open:false }" class="relative">
+
+                <!-- Button -->
+                <button
+                        @click="open = !open"
+                        class="px-4 py-2 bg-gray-200 rounded-xl hover:bg-gray-300 transition whitespace-nowrap"
+                >
+                    {% if selected_tag %}
+                        {{ selected_tag.name }}
+                    {% else %}
+                        Filter Tags
+                    {% endif %}
+                </button>
+
+                <!-- DROPDOWN -->
+                <div
+                        x-show="open"
+                        @click.away="open = false"
+                        class="absolute right-0 mt-2 bg-white border rounded-xl shadow-lg p-2 w-48 z-50"
+                >
+
+                    <!-- Clear tag filter -->
+                    <a
+                            href="?view={{ view_mode }}&search={{ search_query }}"
+                            class="block px-3 py-2 rounded hover:bg-gray-100"
+                    >
+                        All Tags
+                    </a>
+
+                    <hr class="my-1">
+
+                    <!-- TAG OPTIONS -->
+                    {% for tag in tags %}
+                        <a
+                                href="?view={{ view_mode }}&search={{ search_query }}&tag={{ tag.id }}"
+                                class="block px-3 py-2 rounded hover:bg-gray-100"
+                        >
+                            {{ tag.name }}
+                        </a>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FILE LIST (Finder + Dropbox hybrid) -->
+        <div class="space-y-4">
+
+            {% for file in files %}
+                <div
+                        class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between hover:shadow-md transition cursor-pointer group"
+                >
+
+                    <!-- LEFT SECTION -->
+                    <div class="flex items-center space-x-4">
+
+                        <!-- Thumbnail -->
+                        <div class="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center bg-gray-100 border">
+
+                            {% with ext=file.file.name|lower %}
+
+                                {# IMAGE #}
+                                {% if ext|slice:"-4:" == ".png" or ext|slice:"-4:" == ".jpg" or ext|slice:"-5:" == ".jpeg" %}
+
+                                    <img src="{{ file.file.url }}" class="w-full h-full object-cover">
+
+                                    {# VIDEO #}
+                                {% elif ext|slice:"-4:" == ".mp4" or ext|slice:"-4:" == ".mov" or ext|slice:"-5:" == ".webm" %}
+
+                                    <video src="{{ file.file.url }}" class="w-full h-full object-cover"></video>
+
+                                    {# PDF #}
+                                {% elif ext|slice:"-4:" == ".pdf" %}
+                                    <img src="https://i.pinimg.com/736x/98/1c/82/981c821fcaeff4e30254230848cc1477.jpg"
+                                         class="w-10 opacity-80">
+
+                                    {# FALLBACK #}
+                                {% else %}
+                                    <img src="https://i.pinimg.com/736x/98/1c/82/981c821fcaeff4e30254230848cc1477.jpg"
+                                         class="w-10 opacity-70">
+                                {% endif %}
+
+                            {% endwith %}
+
+
+                        </div>
+
+                        <!-- Name + tags + meta -->
+                        <div>
+
+                            <div class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                                {{ file.name }}
+
+                                {% if file.is_archived %}
+                                    <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
+                            Archived
+                        </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-sm text-gray-500">
+                                {{ file.file_size }} bytes • {{ file.content_type|default:"unknown" }}
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="flex space-x-2 mt-2">
+                                {% for tag in file.tags.all %}
+                                    <span class="bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs">
+                                {{ tag.name }}
+                            </span>
+                                {% empty %}
+                                    <span class="text-xs text-gray-400">No tags</span>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <!-- RIGHT ACTIONS (Dropbox-style slide-in on hover) -->
+                    <div class="opacity-0 group-hover:opacity-100 transition flex space-x-4">
+
+                        <!-- Preview -->
+                        <button
+                                @click="
+                        openModal = true;
+                        modalTitle = 'Preview File';
+                        modalContent = 'preview-{{ file.id }}';
+                    "
+                                class="text-blue-600 font-medium hover:underline">
+                            Preview
+                        </button>
+
+                        <!-- Archive / Unarchive -->
+                        <button
+                                @click="
+                        openModal = true;
+                        modalTitle = '{{ file.is_archived|yesno:"Unarchive File,Archive File" }}';
+                        modalContent = 'archive-{{ file.id }}';
+                    "
+                                class="text-yellow-600 font-medium hover:underline">
+                            {% if file.is_archived %}Unarchive{% else %}Archive{% endif %}
+                        </button>
+
+                        <!-- Delete -->
+                        <button
+                                @click="
+                        openModal = true;
+                        modalTitle = 'Delete File';
+                        modalContent = 'delete-{{ file.id }}';
+                    "
+                                class="text-red-600 font-medium hover:underline">
+                            Delete
+                        </button>
+
+                    </div>
+
+                </div>
+            {% empty %}
+                <p class="text-center text-gray-500">No files uploaded yet.</p>
+            {% endfor %}
+
+        </div>
+
+        <p><br><br></p>
+        <!-- Paginator -->
+        {% if files.has_previous %}
+            <a href="?view={{ view_mode }}&search={{ search_query }}&tag={{ tag_filter }}&page={{ files.previous_page_number }}"
+               class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                Previous
+            </a>
+        {% endif %}
+
+        <span class="px-4 py-2 text-gray-700">
+    Page {{ files.number }} of {{ files.paginator.num_pages }}
+</span>
+
+        {% if files.has_next %}
+            <a href="?view={{ view_mode }}&search={{ search_query }}&tag={{ tag_filter }}&page={{ files.next_page_number }}"
+               class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                Next
+            </a>
+        {% endif %}
+
+
+        <!-- MODAL -->
+        <div
+                x-show="openModal"
+                x-transition
+                class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+
+            <div
+                    class="bg-white w-full max-w-lg rounded-lg shadow p-6 relative"
+                    @click.away="openModal = false">
+
+                <!-- Modal Title -->
+                <h2 class="text-xl font-semibold mb-4" x-text="modalTitle"></h2>
+
+                <div class="space-y-4">
+
+                    <!-- CREATE -->
+                    <template x-if="modalContent === 'create'">
+                        {% include "file/form.html" with action='create' tags=tags %}
+                    </template>
+
+                    <!-- PREVIEW -->
+                    {% for file in files %}
+                        <template x-if="modalContent === 'preview-{{ file.id }}'">
+                            {% include "file/preview.html" with file=file %}
+                        </template>
+
+                        <!-- ARCHIVE -->
+                        <template x-if="modalContent === 'archive-{{ file.id }}'">
+                            {% include "file/archive.html" with file=file %}
+                        </template>
+
+                        <!-- DELETE -->
+                        <template x-if="modalContent === 'delete-{{ file.id }}'">
+                            {% include "file/delete.html" with file=file %}
+                        </template>
+                    {% endfor %}
+
+                </div>
+
+                <!-- Close Button -->
+                <button
+                        class="absolute top-3 right-3 text-gray-500 hover:text-black"
+                        @click="openModal = false">
+                    ✕
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}

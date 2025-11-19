@@ -1,0 +1,34 @@
+<div class="space-y-4">
+
+    <p><strong>Name:</strong> {{ file.name }}</p>
+    <p><strong>Type:</strong> {{ file.content_type }}</p>
+    <p><strong>Size:</strong> {{ file.file_size }} bytes</p>
+
+    <!-- PREVIEW LOGIC -->
+    {% if "image" in file.content_type %}
+        <img src="{{ file.file.url }}" class="w-full rounded shadow">
+
+    {% elif "pdf" in file.content_type %}
+        <iframe src="{{ file.file.url }}" class="w-full h-96 rounded shadow"></iframe>
+
+    {% elif "audio" in file.content_type %}
+        <audio controls class="w-full">
+            <source src="{{ file.file.url }}">
+        </audio>
+
+    {% elif "video" in file.content_type %}
+        <video controls class="w-full rounded">
+            <source src="{{ file.file.url }}">
+        </video>
+
+    {% else %}
+        <p class="text-gray-500">No preview available for this file type.</p>
+    {% endif %}
+
+    <a
+       href="{{ file.file.url }}" target="_blank"
+        class="px-4 py-2 bg-blue-600 text-white rounded inline-block mt-2">
+        Open / Download
+    </a>
+
+</div>

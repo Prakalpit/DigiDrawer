@@ -1,0 +1,85 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ---- Virtual Environment ----
+venv/
+.env/
+.env.bak
+*.env
+dotenv
+*.venv
+
+# ---- Django ----
+# SQLite DB
+db.sqlite3
+db.sqlite3-journal
+
+# Django logs
+*.log
+
+# Django static files (if generated)
+staticfiles/
+static/
+build/
+dist/
+
+# Media uploads
+media/
+
+# Migrations (optional — keep if you want)
+# **IMPORTANT:** Usually you KEEP migrations!
+# Uncomment if you want to ignore them:
+# */migrations/
+
+# ---- Editor settings ----
+
+# VSCode
+.vscode/
+.history/
+.code/
+
+# PyCharm
+.idea/
+*.iml
+
+# ---- OS files ----
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ---- Python packaging ----
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ---- Byte-compiled / optimized / DLL files ----
+*.so
+
+# ---- Build system ----
+*.egg-info/
+.eggs/
+*.egg
+
+# ---- Cache ----
+.cache/
+pytestcache/
+coverage.xml
+htmlcov/
+
+# ---- Node (if using npm for Tailwind) ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Local env scripts ----
+start.sh

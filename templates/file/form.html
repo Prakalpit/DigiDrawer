@@ -1,0 +1,123 @@
+<form 
+    method="POST"
+    enctype="multipart/form-data"
+    action="{% url 'file_create' %}"
+    x-data="{
+        selectedTags: [],
+        tagSearch: '',
+        colors: ['#6AAEFF', '#FF9E6A', '#6AFFC9', '#FF6ADC', '#C7FF6A', '#A96AFF']
+    }"
+    class="space-y-6"
+>
+    {% csrf_token %}
+
+    <!-- FILE -->
+    <div>
+        <label class="block mb-1 font-medium">File</label>
+        <input 
+            type="file" 
+            name="file"
+            class="w-full border px-3 py-2 rounded-lg"
+            required
+        >
+    </div>
+
+    <!-- NAME -->
+    <div>
+        <label class="block mb-1 font-medium">Name (optional)</label>
+        <input 
+            type="text"
+            name="name"
+            placeholder="File name"
+            class="w-full border px-3 py-2 rounded-lg"
+        >
+    </div>
+
+    <!-- TAG SELECTOR -->
+    <div class="space-y-4">
+
+        <label class="block mb-1 font-medium">Tags</label>
+
+        <!-- Hidden input for Django -->
+        <input type="hidden" name="tags" :value="selectedTags.join(',')">
+
+        <!-- QUICK TAGS (first 3) -->
+        <div>
+            <div class="text-sm text-gray-500 mb-1">Quick Tags</div>
+
+            <div class="flex gap-2 flex-wrap">
+                {% for tag in tags|slice:":3" %}
+                <button 
+                    type="button"
+                    @click="
+                        if (selectedTags.includes({{ tag.id }})) {
+                            selectedTags = selectedTags.filter(t => t !== {{ tag.id }})
+                        } else {
+                            selectedTags.push({{ tag.id }})
+                        }
+                    "
+                    class="px-3 py-1 rounded-full text-sm font-medium transition"
+                    :style="{
+                        border: '1px solid ' + colors[{{ tag.id }} % colors.length],
+                        backgroundColor: selectedTags.includes({{ tag.id }}) 
+                            ? colors[{{ tag.id }} % colors.length] + '22'
+                            : '#f3f3f3'
+                    }"
+                >
+                    {{ tag.name }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- SEARCH BOX -->
+        <div>
+            <input 
+                type="text" 
+                placeholder="Search tags…" 
+                x-model="tagSearch"
+                class="w-full border px-3 py-2 rounded-lg"
+            >
+        </div>
+
+        <!-- SEARCHABLE TAG LIST -->
+        <div class="max-h-48 overflow-y-auto border rounded-lg p-2 bg-gray-50">
+
+            {% for tag in tags %}
+            <template x-if="'{{ tag.name|lower }}'.includes(tagSearch.toLowerCase())">
+                <button
+                    type="button"
+                    @click="
+                        if (selectedTags.includes({{ tag.id }})) {
+                            selectedTags = selectedTags.filter(t => t !== {{ tag.id }})
+                        } else {
+                            selectedTags.push({{ tag.id }})
+                        }
+                    "
+                    class="w-full text-left px-3 py-2 mb-1 rounded-xl text-sm transition flex justify-between items-center"
+                    :style="{
+                        border: '1px solid ' + colors[{{ tag.id }} % colors.length],
+                        backgroundColor: selectedTags.includes({{ tag.id }}) 
+                            ? colors[{{ tag.id }} % colors.length] + '22'
+                            : 'white'
+                    }"
+                >
+                    <span>{{ tag.name }}</span>
+
+                    <template x-if="selectedTags.includes({{ tag.id }})">
+                        <span class="text-indigo-600 font-bold">✔</span>
+                    </template>
+                </button>
+            </template>
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+        Upload File
+    </button>
+
+</form>
+

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Tags{% endblock %}
+
+{% block extra_head %}
+<!-- Alpine.js for modal functionality -->
+<script src="//unpkg.com/alpinejs" defer></script>
+{% endblock %}
+
+{% block content %}
+
+<div x-data="{ openModal: false, modalContent: '', modalTitle: '' }">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold">Tags</h1>
+
+        <button 
+            @click="
+                openModal = true;
+                modalTitle = 'Create Tag';
+                modalContent = 'create';
+            "
+            class="px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            Create Tag
+        </button>
+    </div>
+
+    <!-- TAGS TABLE -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <table class="w-full">
+            <thead>
+                <tr class="text-left border-b">
+                    <th class="py-2">Name</th>
+                    <th class="py-2 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tag in tags %}
+                <tr class="border-b">
+                    <td class="py-2">{{ tag.name }}</td>
+                    <td class="py-2 text-right">
+
+                        <!-- UPDATE BUTTON -->
+                        <button
+                            @click="
+                                openModal = true;
+                                modalTitle = 'Edit Tag';
+                                modalContent = 'update-{{ tag.id }}';
+                            "
+                            class="text-indigo-600 hover:underline mr-4">
+                            Edit
+                        </button>
+
+                        <!-- DELETE BUTTON -->
+                        <button
+                            @click="
+                                openModal = true;
+                                modalTitle = 'Delete Tag';
+                                modalContent = 'delete-{{ tag.id }}';
+                            "
+                            class="text-red-600 hover:underline">
+                            Delete
+                        </button>
+
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="py-4 text-gray-500 text-center">
+                        No tags found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- MODAL -->
+    <div 
+        x-show="openModal"
+        x-transition
+        class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+
+        <div 
+            class="bg-white w-full max-w-md rounded-lg shadow p-6 relative"
+            @click.away="openModal = false">
+
+            <!-- Modal Title -->
+            <h2 class="text-xl font-semibold mb-4" x-text="modalTitle"></h2>
+
+            <!-- Modal Content -->
+            <div class="space-y-4">
+
+                <!-- CREATE FORM -->
+                <template x-if="modalContent === 'create'">
+                    <div>
+                        {% include "tag/form.html" with action='create' %}
+                    </div>
+                </template>
+
+                <!-- UPDATE FORMS (one for each tag row) -->
+                {% for tag in tags %}
+                <template x-if="modalContent === 'update-{{ tag.id }}'">
+                    <div>
+                        {% include "tag/form.html" with action='update' tag=tag %}
+                    </div>
+                </template>
+
+                <!-- DELETE CONFIRMATION -->
+                <template x-if="modalContent === 'delete-{{ tag.id }}'">
+                    <div>
+                        {% include "tag/delete.html" with tag=tag %}
+                    </div>
+                </template>
+                {% endfor %}
+
+            </div>
+
+            <!-- Close Button -->
+            <button 
+                class="absolute top-3 right-3 text-gray-500 hover:text-black"
+                @click="openModal = false">
+                ✕
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

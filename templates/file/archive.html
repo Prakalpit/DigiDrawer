@@ -1,0 +1,11 @@
+<form method="POST" action="{% url 'file_archive' file.id %}">
+    {% csrf_token %}
+
+    {% if file.is_archived %}
+        <p>Do you want to <strong>unarchive</strong> "{{ file.name }}"?</p>
+        <button class="px-4 py-2 bg-yellow-600 text-white rounded mt-4">Unarchive</button>
+    {% else %}
+        <p>Do you want to <strong>archive</strong> "{{ file.name }}"?</p>
+        <button class="px-4 py-2 bg-yellow-600 text-white rounded mt-4">Archive</button>
+    {% endif %}
+</form>

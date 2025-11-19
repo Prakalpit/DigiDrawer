@@ -1,0 +1,12 @@
+<form method="POST" action="{% url 'tag_delete' tag.id %}">
+    {% csrf_token %}
+
+    <p class="mb-4">
+        Are you sure you want to delete 
+        <strong>{{ tag.name }}</strong>?
+    </p>
+
+    <button class="px-4 py-2 bg-red-600 text-white rounded-md">
+        Delete
+    </button>
+</form>
